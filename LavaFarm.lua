@@ -36,13 +36,13 @@ local returnStack = {};
 --  @param val - The value to push onto the stack.
 --
 function push(stack, val)
-  if (stack{'length'} == nil) then 
-    stack{'length'} = 1;
+  if (stack["length"] == nil) then 
+    stack["length"] = 1;
   else 
-    stack{'length'} = stack{'length'} + 1;
+    stack["length"] = stack["length"] + 1;
   end
   
-  stack[stack{'length'}] = val;
+  stack[stack["length"]] = val;
 end
 
 --
@@ -52,11 +52,11 @@ end
 --  @return Returns the value from the top of the stack or nil if there are no items.
 --
 function pop(stack)
-  if (stack{'length'} == nil or stack{'length'} == 0) then
+  if (stack["length"] == nil or stack["length"] == 0) then
     return nil;
   else
-    local val = stack[stack{'length'}];
-    stack{'length'} = stack{'length'} - 1;
+    local val = stack[stack["length"]];
+    stack["length"] = stack["length"] - 1;
     return val;
   end
 end
@@ -68,10 +68,10 @@ end
 --  @return Returns the number of items on the provided stack.
 --
 function size(stack)
-  if (stack{'length'} == nil) then 
+  if (stack["length"] == nil) then 
     return 0;
   else 
-    return stack{'length'}; 
+    return stack["length"]; 
   end
 end
 
@@ -91,7 +91,7 @@ function move(dir)
   if (dir == FORWARD) then
     while (not(turtle.forward())) do turtle.attack(); end;
   elseif (dir == BACK) then
-    while (not(turtle.back())) do end;
+    while (not(turtle.back())) do os.sleep(.1); end;
   elseif (dir == UP) then
     while (not(turtle.up())) do  turtle.attackUp(); end;
   elseif (dir == DOWN) then
@@ -129,10 +129,10 @@ function turn(dir)
   elseif (dir == NORTH or dir == EAST or dir == SOUTH or dir == WEST) then
     local numLeftTurns = ((4 + orientation) - dir) % 4;
     
-    if (numLeftTurns == 3) -- it's shorter to do just one right turn for this case
+    if (numLeftTurns == 3) then -- it's shorter to do just one right turn for this case
       turtle.turnRight();
     else 
-      for i=1,numLeftTurns do turtle.turnLeft(); -- perform left turns to new orientation
+      for i=1,numLeftTurns do turtle.turnLeft(); end -- perform left turns to new orientation
     end
     orientation = dir;
     
@@ -169,7 +169,7 @@ function collectFuel(dir)
   end
   
   -- check if lava was actually collected
-  if (turtle.compareTo(2)) then
+  if (not(turtle.compareTo(2))) then
     return false;
   end
   
@@ -190,7 +190,7 @@ turtle.select(1);
 
 -- Check if they specified a different maximum travel distance
 if (#tArgs == 1) then
-  MAX_DIST = tonumber(args[1]);
+  MAX_DIST = tonumber(tArgs[1]);
 end
 
 MAX_FUEL = turtle.getFuelLimit();
@@ -213,13 +213,13 @@ end
 -- Make sure there are 2 buckets in the first slot
 if (turtle.getItemCount(1) ~= 2 and turtle.getItemSpace(1) ~= 14) then
   print("Please place 2 empty buckets in slot 1.");
-  while (turtle.getItemCount(1) ~= 2 and turtle.getItemSpace(1) ~= 14) do end
+  while (turtle.getItemCount(1) ~= 2 and turtle.getItemSpace(1) ~= 14) do os.sleep(.1); end
 end
 
 -- Make sure there is nothing in the second slot
 if (turtle.getItemCount(2) ~= 0) then
   print("Please remove any items from slot 2.");
-  while (turtle.getItemCount(2) ~= 0) do end
+  while (turtle.getItemCount(2) ~= 0) do os.sleep(.1); end
 end
 
 -- Check to make sure we started directly above lava
@@ -263,17 +263,18 @@ while (size(returnStack) > 0) do
       end
       
       -- if we haven't found any lava around us yet, then check below us
-      if (~lavaCollected) then
+      if (not(lavaCollected)) then
         if (collectFuel(DOWN)) then
           move(DOWN);
           push(returnStack, UP);
+          lavaCollected = true;
         end
       end
     end
   end
   
   -- if there's no more lava around our current position, let's backtrack
-  if (~lavaCollected) then 
+  if (not(lavaCollected)) then 
     move( pop(returnStack) ); 
   end
 end
