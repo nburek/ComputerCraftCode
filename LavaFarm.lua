@@ -252,7 +252,7 @@ while (size(returnStack) > 0) do
     else
       -- check all around us for lava and move there if you find some
       for i=1,4 do
-        if (collectFuel(FORWARD)) then
+        if ( collectFuel(FORWARD) ) then
           move(FORWARD);
           push(returnStack, ((orientation+2) % 4));
           lavaCollected = true;
@@ -264,7 +264,7 @@ while (size(returnStack) > 0) do
       
       -- if we haven't found any lava around us yet, then check below us
       if (not(lavaCollected)) then
-        if (collectFuel(DOWN)) then
+        if ( collectFuel(DOWN) ) then
           move(DOWN);
           push(returnStack, UP);
           lavaCollected = true;
