@@ -1,5 +1,5 @@
 local tArgs = { ... };
-local MAX_DIST = 10;
+local MAX_DIST = 20;
 local MAX_FUEL = 20000;
 
 -- The different orientations (DOWN is +Y and UP is -Y)
@@ -18,46 +18,74 @@ local LEFT = 9;
 
 
 -- The starting position and orientation
-local pos = {0, -1, 0};
-local orient = NORTH;
+local orientation = NORTH;
 
--- The locations we have visitied
-local visited = {}; -- index using: visited[X + Y*MAX_DIST + Z*MAX_DIST*MAX_DIST]
+-- Directions to get back to start
+local returnStack = {}; 
 
 
--- 
---  Used to collect lava from a specific direction
+
+-- --------------------------------- --
+-- STACK FUNCTIONS                   --
+-- --------------------------------- --
+
 --
---  @param dir - The direction to collect from
---  @return Will return true if lava was actually collected and used.
--- 
-function collectFuel(dir)
-
-  -- attempt to pick up lava
-  if (dir == FORWARD) then
-    turtle.place();
-  elseif (dir == UP) then
-    turtle.placeUp();
-  elseif (dir == DOWN) then
-    turtle.placeDown();
+--  Put a new value on the stack
+--
+--  @param stack - The stack to add the value to
+--  @param val - The value to push onto the stack.
+--
+function push(stack, val)
+  if (stack{'length'} == nil) then 
+    stack{'length'} = 1;
+  else 
+    stack{'length'} = stack{'length'} + 1;
   end
   
-  -- check if lava was actually collected
-  if (turtle.compareTo(2)) then
-    return false;
-  end
-  
-  turtle.refuel();
-  return true;
+  stack[stack{'length'}] = val;
 end
 
+--
+--  Pops the next value off the top of the stack.
+--
+--  @param stack - The stack to take the value from.
+--  @return Returns the value from the top of the stack or nil if there are no items.
+--
+function pop(stack)
+  if (stack{'length'} == nil or stack{'length'} == 0) then
+    return nil;
+  else
+    local val = stack[stack{'length'}];
+    stack{'length'} = stack{'length'} - 1;
+    return val;
+  end
+end
+
+--
+--  Finds the size of a stack.
+--
+--  @param stack - The stack to find the size of.
+--  @return Returns the number of items on the provided stack.
+--
+function size(stack)
+  if (stack{'length'} == nil) then 
+    return 0;
+  else 
+    return stack{'length'}; 
+  end
+end
+
+-- --------------------------------- --
+-- MOVEMENT FUNCTIONS                --
+-- --------------------------------- --
 
 --
 --  Used to move the turtle in the specified direction. If something is blocking it, the turtle 
 --  will continue to attack and attempt to move until it completes. If moving BACK, the turtle 
---  will not attack between attempting to move.
+--  will not attack between attempting to move. Regardless of where it moves, the turtle will 
+--  end with the same orientation that it started with
 --
---  @param dir - The direction to move the turtle
+--  @param dir - The direction or orientation to move the turtle
 --
 function move(dir)
   if (dir == FORWARD) then
@@ -69,13 +97,18 @@ function move(dir)
   elseif (dir == DOWN) then
     while (not(turtle.down())) do turtle.attackDown(); end;
   elseif (dir == RIGHT) then
-    turtle.turnRight();
+    turn(RIGHT);
     move(FORWARD);
-    turtle.turnLeft();
+    turn(LEFT);
   elseif (dir == LEFT) then
-    turtle.turnLeft();
+    turn(LEFT);
     move(FORWARD);
-    turtle.turnRight();
+    turn(RIGHT);
+  elseif (dir == NORTH or dir == EAST or dir == SOUTH or dir == WEST) then
+    local oldOrient = orientation;
+    turn(dir);
+    move(FORWARD);
+    turn(oldOrient);
   end
 end
 
@@ -87,18 +120,63 @@ end
 function turn(dir)
   if (dir == RIGHT) then
     turtle.turnRight();
+    orientation = (orientation + 1) % 4;
+    
   elseif (dir == LEFT) then
     turtle.turnLeft();
-  elseif (dir == NORTH) then
+    orientation = (orientation + 3) % 4; -- mathematically, a left turn is the same as 3 right turns
     
-  elseif (dir == EAST) then
+  elseif (dir == NORTH or dir == EAST or dir == SOUTH or dir == WEST) then
+    local numLeftTurns = ((4 + orientation) - dir) % 4;
     
-  elseif (dir == SOUTH) then
-    
-  elseif (dir == WEST) then
+    if (numLeftTurns == 3) -- it's shorter to do just one right turn for this case
+      turtle.turnRight();
+    else 
+      for i=1,numLeftTurns do turtle.turnLeft(); -- perform left turns to new orientation
+    end
+    orientation = dir;
     
   end
 end
+
+
+
+-- --------------------------------- --
+-- UTILITY FUNCTIONS                 --
+-- --------------------------------- --
+
+-- 
+--  Used to collect lava from a specific direction. This function does not maintain the original 
+--  turtle orientation. The turtle will be facing whichever direction it was told to collected from.
+--
+--  @param dir - The direction or orientation to collect from
+--  @return Will return true if lava was actually collected and used.
+-- 
+function collectFuel(dir)
+
+  -- attempt to pick up lava from the specified location
+  if (dir == FORWARD) then
+    turtle.place();
+  elseif (dir == UP) then
+    turtle.placeUp();
+  elseif (dir == DOWN) then
+    turtle.placeDown();
+  elseif (dir == NORTH or dir == EAST or dir == SOUTH or dir == WEST) then
+    turn(dir);
+    turtle.place();
+  else
+    return false;
+  end
+  
+  -- check if lava was actually collected
+  if (turtle.compareTo(2)) then
+    return false;
+  end
+  
+  turtle.refuel();
+  return true;
+end
+
 
 
 
@@ -121,8 +199,8 @@ MAX_FUEL = turtle.getFuelLimit();
 if (MAX_FUEL == "unlimited") then
   print("Turtles are not configured to require fuel on this server. Ending program to avoid wasting lava.");
   return;
-elseif (turtle.getFuelLevel()<5) then
-  print("You must have a fuel level of at least 5 before running this program.");
+elseif (turtle.getFuelLevel()<2) then
+  print("You must have a fuel level of at least 2 before running this program.");
   return;
 end
 
@@ -151,3 +229,58 @@ if (turtle.getItemCount(1) ~= 1 and turtle.getItemCount(2) ~= 1) then
   return;
 end
 
+
+-- take an initial step down to where we collected the first bucket of lava from
+move(DOWN);
+push(returnStack,UP);
+
+-- The main collection logic starts here
+-- TODO: Because the move() function preserves orientation, there may be an optimization that  
+--        prevents the need to check all the sides again after you backtrack
+while (size(returnStack) > 0) do
+
+  local lavaCollected = false;
+    
+  -- still room for more fuel and not too far away yet
+  if (((MAX_FUEL - 1000) > turtle.getFuelLevel()) and size(returnStack)<MAX_DIST) then 
+  
+    -- check if there is lava above us and move up if there is
+    if ( collectFuel(UP) ) then
+      move(UP);
+      push(returnStack,DOWN);
+      lavaCollected = true;
+    else
+      -- check all around us for lava and move there if you find some
+      for i=1,4 do
+        if (collectFuel(FORWARD)) then
+          move(FORWARD);
+          push(returnStack, ((orientation+2) % 4));
+          lavaCollected = true;
+          break;
+        else
+          turn(RIGHT);
+        end
+      end
+      
+      -- if we haven't found any lava around us yet, then check below us
+      if (~lavaCollected) then
+        if (collectFuel(DOWN)) then
+          move(DOWN);
+          push(returnStack, UP);
+        end
+      end
+    end
+  end
+  
+  -- if there's no more lava around our current position, let's backtrack
+  if (~lavaCollected) then 
+    move( pop(returnStack) ); 
+  end
+end
+
+-- Use the one bucket of lava in the second slot
+turtle.select(2);
+turtle.refuel();
+turtle.transferTo(1);
+
+print("The final fuel level is: " .. turtle.getFuelLevel());
