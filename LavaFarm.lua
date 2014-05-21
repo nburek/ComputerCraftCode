@@ -244,10 +244,10 @@ while (size(returnStack) > 0) do
   -- still room for more fuel and not too far away yet
   if (((MAX_FUEL - 1000) > turtle.getFuelLevel()) and size(returnStack)<MAX_DIST) then 
   
-    -- check if there is lava above us and move up if there is
-    if ( collectFuel(UP) ) then
-      move(UP);
-      push(returnStack,DOWN);
+    -- check if there is lava below us and move down if there is
+    if ( collectFuel(DOWN) ) then
+      move(DOWN);
+      push(returnStack,UP);
       lavaCollected = true;
     else
       -- check all around us for lava and move there if you find some
@@ -262,11 +262,11 @@ while (size(returnStack) > 0) do
         end
       end
       
-      -- if we haven't found any lava around us yet, then check below us
+      -- if we haven't found any lava around us yet, then check above us
       if (not(lavaCollected)) then
-        if ( collectFuel(DOWN) ) then
-          move(DOWN);
-          push(returnStack, UP);
+        if ( collectFuel(UP) ) then
+          move(UP);
+          push(returnStack, DOWN);
           lavaCollected = true;
         end
       end
