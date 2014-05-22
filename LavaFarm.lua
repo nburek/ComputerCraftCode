@@ -222,10 +222,10 @@ if (turtle.getItemCount(2) ~= 0) then
   while (turtle.getItemCount(2) ~= 0) do os.sleep(.1); end
 end
 
--- Check to make sure we started directly above lava
+-- Check to make sure we started directly above lava and collect one bucket of lava to use for comparison
 turtle.placeDown();
 if (turtle.getItemCount(1) ~= 1 and turtle.getItemCount(2) ~= 1) then
-  print("The turtle must be on block directly above lava before starting this program.");
+  print("The turtle must be one block directly above lava before starting this program.");
   return;
 end
 
@@ -236,7 +236,7 @@ push(returnStack,UP);
 
 -- The main collection logic starts here
 -- TODO: Because the move() function preserves orientation, there may be an optimization that  
---        prevents the need to check all the sides again after you backtrack
+--        prevents the need to check all the sides again after you backtrack.
 while (size(returnStack) > 0) do
 
   local lavaCollected = false;
