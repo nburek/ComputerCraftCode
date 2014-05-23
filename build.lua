@@ -89,6 +89,12 @@ end
 -- UTILITY FUNCTIONS                 --
 -- --------------------------------- --
 
+--
+--  Used to place a block in a given direction. Will move the 
+--  selected inventory slot if the currently selected on is empty.
+--  
+--  @param The direction in which you want to place a block.
+--
 function placeBlock(dir)
   while (turtle.getItemCount(turtle.getSelectedSlot()) == 0) do
     turtle.select((turtle.getSelectedSlot() % 16) + 1);
@@ -103,6 +109,11 @@ function placeBlock(dir)
   end
 end
 
+--
+--  Used to get a count of all the items in the turtle's inventory
+--
+--  @return Returns the total number of items in turtle's inventory
+--
 function countAllBlocks()
   local counter = 0;
   for i=1,16 do
@@ -116,7 +127,9 @@ end
 -- BUILDING FUNCTIONS                --
 -- --------------------------------- --
 
-
+--
+--  Used to perform some prechecks and build a cube structure
+--
 function buildCube()
 
   -- check all the command line arguments for the cube structure
@@ -161,6 +174,13 @@ function buildCube()
   
 end
 
+--
+--  Used to build a filled cube
+--
+--  @param x - The number of blocks North of the turtle to build
+--  @param y - The number of blocks East of the turtle to build
+--  @param z - The number of blocks Up from the turtle to build
+--
 function buildFilledCube(x, y, z)
   local layerDirection = EAST;
 
@@ -187,7 +207,13 @@ function buildFilledCube(x, y, z)
   end
 end
 
-
+--
+--  Used to build a hollow cube
+--
+--  @param x - The number of blocks North of the turtle to build
+--  @param y - The number of blocks East of the turtle to build
+--  @param z - The number of blocks Up from the turtle to build
+--
 function buildHollowCube(x, y, z)
   local layerDirection = EAST;
 
