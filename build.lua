@@ -113,6 +113,150 @@ end
 
 
 -- --------------------------------- --
+-- BUILDING FUNCTIONS                --
+-- --------------------------------- --
+
+
+function buildCube()
+
+  -- check all the command line arguments for the cube structure
+  if #tArgs ~= 5 then
+    print("You must pass in true/false to specify if the cube is filled as well as a length Forward, Right, and Up to build.");
+    print("Usage: build cube <filled> <forward> <right> <up>");
+    return;
+  end
+  
+  -- get all the lengths for the cube
+  local lengthForward = tonumber(tArgs[3]);
+  local lengthRight = tonumber(tArgs[4]);
+  local lengthUp = tonumber(tArgs[5]);
+  
+  local blocksRequired = 0;
+  local buildFunction = nil;
+
+  -- check if we're doing a filled cube or hollow cube
+  if tArgs[2] == "true" then -- filled cube
+    blocksRequired = lengthForward * lengthRight * lengthUp;
+    buildFunction = buildFilledCube;
+    --buildFilledCube(lengthForward, lengthRight, lengthUp);
+    
+  else -- hollow cube
+    blocksRequired = (lengthForward * lengthRight * lengthUp) - ((lengthForward-2) * (lengthRight-2) * (lengthUp-2));
+    buildFunction = buildHollowCube;
+    --buildHollowCube(lengthForward, lengthRight, lengthUp);
+  end
+  
+  -- make sure we have enough blocks and fuel
+  if (blocksRequired > countAllBlocks()) then
+    print("Not enough blocks in the turtle inventory to build the desired structure.");
+    print(blocksRequired .. " blocks required.");
+    return;
+  elseif ( (blocksRequired + 2) > turtle.getFuelLevel()) then
+    print("Not enough fuel for the required operation.");
+    print((blocksRequired + 2) .. " fuel required.");
+    return;
+  end
+  
+  buildFunction(lengthForward, lengthRight, lengthUp);
+  
+end
+
+function buildFilledCube(x, y, z)
+  local layerDirection = EAST;
+
+  for k=1,z do
+    move(UP);
+    
+    for j=1,y do
+    
+      for i=1,x do
+        placeBlock(DOWN);
+        if (i ~= x) then move(FORWARD); end
+      end
+      
+      local nextOrientation = (orientation + 2) % 4; -- turn 180 degrees
+      if (j ~= y) then
+        turn(layerDirection);
+        move(FORWARD);
+      end
+      turn(nextOrientation);
+      
+    end
+    
+    layerDirection = (layerDirection + 2) % 4; -- we'll be building the next layer moving the other way
+  end
+end
+
+
+function buildHollowCube(x, y, z)
+  local layerDirection = EAST;
+
+  -- do the base layer
+  move(UP);
+  for j=1,y do
+    for i=1,x do
+      placeBlock(DOWN);
+      if (i ~= x) then move(FORWARD); end
+    end
+    
+    local nextOrientation = (orientation + 2) % 4; -- turn 180 degrees
+    if (j ~= y) then
+      turn(layerDirection);
+      move(FORWARD);
+    end
+    turn(nextOrientation);
+    
+  end -- the base layer loop
+  
+  layerDirection = (layerDirection + 2) % 4; -- we'll be building the top layer moving the other way
+  
+  
+  -- do the walls
+  for k=1,(z-2) do
+    move(UP);
+    
+    -- each layer is two L shapes of the two side lengths
+    local turnDirection = RIGHT;
+    if ( (y%2) == 0) then turnDirection = LEFT; end
+    for h=1,2 do
+      -- do a wall of the first length
+      for i=1,(x-1) do
+        placeBlock(DOWN);
+        move(FORWARD);
+      end
+      turn(turnDirection);
+      
+      -- do a wall of the second length
+      for j=1,(y-1) do
+        placeBlock(DOWN);
+        move(FORWARD);
+      end
+      turn(turnDirection);
+    end
+    
+  end -- the walls loop
+  
+  
+  -- do the upper layer
+  move(UP);
+  for j=1,y do
+    for i=1,x do
+      placeBlock(DOWN);
+      if (i ~= x) then move(FORWARD); end
+    end
+    
+    local nextOrientation = (orientation + 2) % 4; -- turn 180 degrees
+    if (j ~= y) then
+      turn(layerDirection);
+      move(FORWARD);
+    end
+    turn(nextOrientation);
+    
+  end -- the upper layer loop
+  
+end
+
+-- --------------------------------- --
 -- STARTING THE PROGRAM...           --
 -- --------------------------------- --
 term.clear();
@@ -120,58 +264,24 @@ term.setCursorPos(1,1);
 turtle.select(1);
 
 
--- TODO List --
----------------
--- Check the command line arguments to make sure they're valid
--- Check to make sure there is enough fuel before starting
--- Check to make sure there are enough blocks before starting
--- 
-
-if #tArgs ~= 3 then
-  write("You must pass in a length Forward, Right, and Up to build.\nUsage: build <forward> <right> <up> <travel height>\n");
+if #tArgs == 0 then
+  print("Usage: build <structure> [options]");
   return;
 end
 
-local lengthForward = tonumber(tArgs[1]);
-local lengthRight = tonumber(tArgs[2]);
-local lengthUp = tonumber(tArgs[3]);
-
-local blocksRequired = lengthForward * lengthRight * lengthUp;
-
-if (blocksRequired > countAllBlocks()) then
-  print("Not enough blocks in the turtle inventory to build the desired structure.");
-  print(blocksRequired .. " blocks required.");
+if tArgs[1] == "help" then
+  print("Available structures: cube");
   return;
+  
+elseif tArgs[1] == "cube" then
+  buildCube();
 end
 
-if ( (blocksRequired + 2) > turtle.getFuelLevel()) then
-  print("Not enough fuel for the required operation.");
-  print((blocksRequired + 2) .. " fuel required.");
-  return;
-end
 
-local layerDirection = EAST;
 
-for k=1,lengthUp do
-  move(UP);
-  
-  for j=1,lengthRight do
-  
-    for i=1,lengthForward do
-      placeBlock(DOWN);
-      if (i ~= lengthForward) then move(FORWARD); end
-    end
-    
-    local nextOrientation = (orientation + 2) % 4; -- turn 180 degrees
-    if (j ~= lengthRight) then
-      turn(layerDirection);
-      move(FORWARD);
-    end
-    turn(nextOrientation);
-    
-  end
-  
-  layerDirection = (layerDirection + 2) % 4; -- we'll be building the next layer moving the other way
-end
+
+
+
+
 
 
