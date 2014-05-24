@@ -1,7 +1,8 @@
 local REPO_URL = "https://raw.github.com/nburek/ComputerCraftCode/master/";
+local INSTALL_DIR = "/CCC/";
 local programList = {length=0};
 local selected = {length=0};
-local allSelected = " ";
+
 
 local currentSelection = 1;
 local scroll = 0;
@@ -40,6 +41,26 @@ function printMenu()
   
   term.setCursorPos(2, (1 + currentSelection - scroll));
   term.setCursorBlink(true);
+end
+
+function installProgram(programName)
+  if (not fs.exists(INSTALL_DIR)) then fs.makeDir(INSTALL_DIR); end
+  
+  ok, data = getWebpage(REPO_URL .. programName .. ".lua");
+  
+  if (not ok) then
+    print("Could not download " .. programName .. " from the repo.");
+    return;
+  end
+  
+  if ( fs.exists(INSTALL_DIR .. programName)) then fs.delete(INSTALL_DIR .. programName); end
+  
+  local f = fs.open(INSTALL_DIR .. programName, "w");
+  f.write(data.readAll());
+  f.close();
+  data.close();
+  
+  print("Installed " .. programName);
 end
 
 -- --------------------------------- --
@@ -99,7 +120,14 @@ while true do
       selected[currentSelection] = " ";
     end;
   elseif (keycode == ENTER) then
-    -- TODO: install the selected programs
+    term.clear();
+    term.setCursorPos(1,1);
+    
+    for i=1,programList.length do
+      if (selected[i] == "X") then installProgram(programList[i]); end
+    end
+    
+    return;
   elseif (keycode == BACKSPACE) then
     term.clear();
     term.setCursorPos(1,1);
