@@ -28,12 +28,13 @@ function printMenu()
   term.setCursorBlink(false);
   term.clear();
   term.setCursorPos(1,1);
-  print("Select Programs");
+  write("Select Programs");
   
   
   for i=1,(tY-1) do
     if (i <= programList.length) then 
-      print("[" .. selected[i+scroll] .. "] " .. programList[i+scroll]);
+      term.setCursorPos(1,(i+1));
+      write("[" .. selected[i+scroll] .. "] " .. programList[i+scroll]);
     end
   end
   
