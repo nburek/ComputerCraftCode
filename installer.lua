@@ -48,7 +48,7 @@ function installProgram(programName)
   
   ok, data = getWebpage(REPO_URL .. programName .. ".lua");
   
-  if (not ok) then
+  if ((not ok) or (data == nil)) then
     print("Could not download " .. programName .. " from the repo.");
     return;
   end
