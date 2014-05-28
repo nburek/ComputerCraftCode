@@ -124,13 +124,13 @@ function readInArguments(args, opts)
     else -- the next item should be a sub-item under the current flag
       
       if (string.sub(args[i],1,1) == "-" ) then -- make sure it's not another flag already
-        return false, ("The " .. curr .. " option requires " .. opts[curr] .. " additional arguments.");
+        return false, ("The " .. curr .. " flag requires " .. opts[curr] .. " additional arguments.");
       else
         rArgs[curr][#(rArgs[curr]) + 1] = args[i];
       end
     end
     
-    if (#(rArgs[curr]) >= opts[curr] ) then -- if we have read in all the sub-items for this flag
+    if (curr ~= nil and #(rArgs[curr]) >= opts[curr] ) then -- if we have read in all the sub-items for this flag
       curr = nil;
     end
     
@@ -138,7 +138,7 @@ function readInArguments(args, opts)
   end
   
   if (curr ~= nil) then -- an issue occured here and we weren't able to read in all the arguments required
-    return false, ("The " .. curr .. " option requires " .. opts[curr] .. " additional arguments.");
+    return false, ("The " .. curr .. " flag requires " .. opts[curr] .. " additional arguments.");
   else
     return true, rArgs;
   end
@@ -149,6 +149,7 @@ end
 --  selected inventory slot if the currently selected on is empty.
 --  
 --  @param The direction in which you want to place a block.
+--  @param force - Boolean stating if blocks should be broken if they're in the way
 --
 function placeBlock(dir, force)
   if (force ~= nil and force == true) then
@@ -170,6 +171,8 @@ end
 
 --
 --  Used to destroy a block in a given direction/orientation. 
+--
+--  @param dir - The direction or orientation of the block to break
 --
 function breakBlock(dir)
 
@@ -229,25 +232,28 @@ end
 --
 --  Used to perform some prechecks and build a cube structure
 --
-function buildCube()
+--  @param args - The table of arguments that was parsed for the cube flag
+--  @param force - Boolean stating if blocks should be broken if they're in the way
+--
+function buildCube(args,force)
 
   -- check all the command line arguments for the cube structure
-  if #tArgs ~= 5 then
+  if #args ~= 4 then
     print("You must pass in true/false to specify if the cube is filled as well as a length Forward, Right, and Up to build.");
     print("Usage: build cube <filled> <forward> <right> <up>");
     return;
   end
   
   -- get all the lengths for the cube
-  local lengthForward = tonumber(tArgs[3]);
-  local lengthRight = tonumber(tArgs[4]);
-  local lengthUp = tonumber(tArgs[5]);
+  local lengthForward = tonumber(args[2]);
+  local lengthRight = tonumber(args[3]);
+  local lengthUp = tonumber(args[4]);
   
   local blocksRequired = 0;
   local buildFunction = nil;
 
   -- check if we're doing a filled cube or hollow cube
-  if tArgs[2] == "true" then -- filled cube
+  if args[1] == "true" then -- filled cube
     blocksRequired = lengthForward * lengthRight * lengthUp;
     buildFunction = buildFilledCube;
     --buildFilledCube(lengthForward, lengthRight, lengthUp);
@@ -269,7 +275,7 @@ function buildCube()
     return;
   end
   
-  buildFunction(lengthForward, lengthRight, lengthUp);
+  buildFunction(lengthForward, lengthRight, lengthUp, force);
   
 end
 
@@ -279,6 +285,7 @@ end
 --  @param x - The number of blocks North of the turtle to build
 --  @param y - The number of blocks East of the turtle to build
 --  @param z - The number of blocks Up from the turtle to build
+--  @param force - Boolean stating if blocks should be broken if they're in the way
 --
 function buildFilledCube(x, y, z, force)
   local layerDirection = EAST;
@@ -312,6 +319,7 @@ end
 --  @param x - The number of blocks North of the turtle to build
 --  @param y - The number of blocks East of the turtle to build
 --  @param z - The number of blocks Up from the turtle to build
+--  @param force - Boolean stating if blocks should be broken if they're in the way
 --
 function buildHollowCube(x, y, z, force)
   local layerDirection = EAST;
@@ -394,16 +402,21 @@ if #tArgs == 0 then
   return;
 end
 
-arguments = readInArguments(tArgs,argOpts);
+ok, arguments = readInArguments(tArgs,argOpts);
 
-print(textutils.serialize(arguments));
+if (not ok) then -- something went wrong when trying to parse the arguments
+  print(arguments);
+  return;
+end
 
-if tArgs[1] == "help" then
+local forceFlag = false;
+if (arguments.force ~= nil) then forceFlag = true; end
+
+if (arguments.help ~= nil) then
   print("Available structures: cube");
   return;
-  
-elseif tArgs[1] == "cube" then
-  buildCube();
+elseif (arguments.cube ~= nil) then
+  buildCube(arguments.cube,forceFlag);
 end
 
 
