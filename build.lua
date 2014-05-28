@@ -18,10 +18,10 @@ local LEFT = 9;
 -- The starting position and orientation
 local orientation = NORTH;
 
-
 -- Available Command Line Arguments
-local argOpts = { offset=3, force=0, cube=4, help=0};
+local argOpts = { offset=4, force=0, cube=4, help=0};
 
+local offsets = {0, 0, 0, 0};
 
 
 -- --------------------------------- --
@@ -77,6 +77,45 @@ function turn(dir)
     orientation = dir;
     
   end
+end
+
+--
+--  Moves the turtle forward, right, then up the specified offset and then turns it to the orientation
+--
+function moveToOffset(force)
+
+  local oriForward = orientation;
+  local oriRight = (orientation + 1)%4;
+  
+  -- move forward by the set amount
+  if (offsets[1] < 0) then
+    offsets[1] = offsets[1] * -1;
+    oriForward = (oriForward + 2) % 4;
+  end
+  for i=1,offsets[1] do
+    move(oriForward,force);
+  end
+  
+  -- move to the right by the set amount
+  if (offsets[2] < 0) then
+    offsets[2] = offsets[2] * -1;
+    oriRight = (oriRight + 2) % 4;
+  end
+  for i=1,offsets[2] do
+    move(oriRight,force);
+  end
+  
+  ori = UP;
+  if (offsets[3] < 0) then
+    offsets[3] = offsets[3] * -1;
+    ori = DOWN;
+  end
+  for i=1,offsets[3] do
+    move(ori,force);
+  end
+  
+  turn(offsets[4]);
+  
 end
 
 
@@ -251,6 +290,11 @@ function buildCube(args,force)
   
   local blocksRequired = 0;
   local buildFunction = nil;
+  
+  -- if one of the dimensions is only 1 block long then default to filled
+  if (lengthForward == 1 or lengthRight == 1 or lengthUp ==1) then
+    args[1] = "true";
+  end
 
   -- check if we're doing a filled cube or hollow cube
   if args[1] == "true" then -- filled cube
@@ -269,11 +313,13 @@ function buildCube(args,force)
     print("Not enough blocks in the turtle inventory to build the desired structure.");
     print(blocksRequired .. " blocks required.");
     return;
-  elseif ( (blocksRequired + 2) > turtle.getFuelLevel()) then
+  elseif ( (blocksRequired + offset[1] + offset[2] + offset[3] + 1) > turtle.getFuelLevel()) then
     print("Not enough fuel for the required operation.");
-    print((blocksRequired + 2) .. " fuel required.");
+    print((blocksRequired + offset[1] + offset[2] + offset[3] + 1) .. " fuel required.");
     return;
   end
+  
+  moveToOffset(force);
   
   buildFunction(lengthForward, lengthRight, lengthUp, force);
   
@@ -411,6 +457,11 @@ end
 
 local forceFlag = false;
 if (arguments.force ~= nil) then forceFlag = true; end
+if (arguments.offset ~= nil) then
+  for i=1,4 do
+    offsets[i] = tonumber(arguments.offset[i]);
+  end
+end
 
 if (arguments.help ~= nil) then
   print("Available structures: cube");
