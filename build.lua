@@ -48,7 +48,7 @@ function move(dir, force)
   else
     dir = dir2Orient(dir);
     turn(dir);
-    move(FORWARD);
+    move(FORWARD,force);
   end
 end
 
@@ -153,7 +153,7 @@ end
 --
 function breakBlock(dir)
 
-  if (dir == FORWARD then
+  if (dir == FORWARD) then
     turtle.dig();
   elseif (dir == UP) then
     turtle.digUp();
@@ -264,13 +264,13 @@ function buildFilledCube(x, y, z)
   local layerDirection = EAST;
 
   for k=1,z do
-    move(UP);
+    move(UP,true);
     
     for j=1,y do
     
       for i=1,x do
         placeBlock(DOWN,true);
-        if (i ~= x) then move(FORWARD); end
+        if (i ~= x) then move(FORWARD,true); end
       end
       
       local nextOrientation = (orientation + 2) % 4; -- turn 180 degrees
