@@ -85,12 +85,14 @@ end
 -- --------------------------------- --
 
 --
---  Used to parse out the command line arguments using the structure provided.
+--  Used to parse out the command line arguments using the structure provided and put them in a table.
 --
 --  @param args - The command line arguments that you want to parse
 --  @param opts - The available options for command line arguments that will be used to determine
 --                the structure of the return data.
---  @return Will return all the command line arguments restructed as a list of sub options
+--  @return Will return a boolean value specifying if it succeeded or not. If it is false then the 
+--          second return item will be a string stating why it failed. If the first return value 
+--          is true then the second item will be a table containing all the parsed items
 -- 
 function readInArguments(args, opts)
   local i = 1;
@@ -101,20 +103,38 @@ function readInArguments(args, opts)
   rArgs.others = {};
   
   while (i <= #args) do
-    if (curr == nil) then
-      if (opts[args[i]] == nil) then -- this is not one of the available options
-        rArgs.others[#(rArgs.others) + 1] = args[i];
-      else -- this is one of the available options so lets start reading into it
-        curr = args[i];
-        rArgs[curr] = {};
+    if (curr == nil) then -- we aren't currently reading in a flag's sub-items
+    
+      curr = args[i]; -- get the next item
+      if (string.sub(curr,1,1) == "-") then -- it's a new flag
+      
+        curr = string.sub(curr,2); -- removes the starting '-' character
+        
+        if (opts[curr] == nil) then -- it's an unknown flag type
+          return false, ("Unknown flag " .. curr);
+        else -- initialize the flag's table
+          rArgs[curr] = {};
+        end
+        
+      else -- it wasn't a flag, so it's just a generic left over argument
+        rArgs.others[#(rArgs.others) + 1] = curr;
+        curr = nil;
       end
-    else
-      rArgs[curr][#(rArgs[curr]) + 1] = args[i];
+      
+    else -- the next item should be a sub-item under the current flag
+      
+      if (string.sub(args[i],1,1) == "-" ) then -- make sure it's not another flag already
+        return false, ("The " .. curr .. " option requires " .. opts[curr] .. " additional arguments.");
+      else
+        rArgs[curr][#(rArgs[curr]) + 1] = args[i];
+      end
     end
     
-    if (#(rArgs[curr]) >= opts[curr] ) then -- if we have read in all the sub-items for this item
+    if (#(rArgs[curr]) >= opts[curr] ) then -- if we have read in all the sub-items for this flag
       curr = nil;
     end
+    
+    i = i + 1;
   end
   
   if (curr ~= nil) then -- an issue occured here and we weren't able to read in all the arguments required
