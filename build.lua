@@ -19,6 +19,10 @@ local LEFT = 9;
 local orientation = NORTH;
 
 
+-- Available Command Line Arguments
+local argOpts = { offset=3, force=0, cube=4};
+
+
 
 -- --------------------------------- --
 -- MOVEMENT FUNCTIONS                --
@@ -26,34 +30,25 @@ local orientation = NORTH;
 
 --
 --  Used to move the turtle in the specified direction. If something is blocking it, the turtle 
---  will continue to attack and attempt to move until it completes. If moving BACK, the turtle 
---  will not attack between attempting to move. Regardless of where it moves, the turtle will 
---  end with the same orientation that it started with
+--  will continue to attack and attempt to move until it completes.
 --
 --  @param dir - The direction or orientation to move the turtle
 --
-function move(dir)
+function move(dir, force)
+  if (force ~= nil and force == true) then
+    breakBlock(dir);
+  end
+  
   if (dir == FORWARD) then
     while (not(turtle.forward())) do turtle.attack(); end;
-  elseif (dir == BACK) then
-    while (not(turtle.back())) do os.sleep(.1); end;
   elseif (dir == UP) then
     while (not(turtle.up())) do  turtle.attackUp(); end;
   elseif (dir == DOWN) then
     while (not(turtle.down())) do turtle.attackDown(); end;
-  elseif (dir == RIGHT) then
-    turn(RIGHT);
-    move(FORWARD);
-    turn(LEFT);
-  elseif (dir == LEFT) then
-    turn(LEFT);
-    move(FORWARD);
-    turn(RIGHT);
-  elseif (dir == NORTH or dir == EAST or dir == SOUTH or dir == WEST) then
-    local oldOrient = orientation;
+  else
+    dir = dir2Orient(dir);
     turn(dir);
     move(FORWARD);
-    turn(oldOrient);
   end
 end
 
@@ -90,12 +85,56 @@ end
 -- --------------------------------- --
 
 --
+--  Used to parse out the command line arguments using the structure provided.
+--
+--  @param args - The command line arguments that you want to parse
+--  @param opts - The available options for command line arguments that will be used to determine
+--                the structure of the return data.
+--  @return Will return all the command line arguments restructed as a list of sub options
+-- 
+function readInArguments(args, opts)
+  local i = 1;
+  local curr = nil;
+  
+  -- initialize the return data
+  local rArgs = {};
+  rArgs.others = {};
+  
+  while (i <= #args) do
+    if (curr == nil) then
+      if (opts[args[i]] == nil) then -- this is not one of the available options
+        rArgs.others[#(rArgs.others) + 1] = args[i];
+      else -- this is one of the available options so lets start reading into it
+        curr = args[i];
+        rArgs[curr] = {};
+      end
+    else
+      rArgs[curr][#(rArgs[curr]) + 1] = args[i];
+    end
+    
+    if (#(rArgs[curr]) >= opts[curr] ) then -- if we have read in all the sub-items for this item
+      curr = nil;
+    end
+  end
+  
+  if (curr ~= nil) then -- an issue occured here and we weren't able to read in all the arguments required
+    return false, ("The " .. curr .. " option requires " .. opts[curr] .. " additional arguments.");
+  else
+    return true, rArgs;
+  end
+end
+
+--
 --  Used to place a block in a given direction. Will move the 
 --  selected inventory slot if the currently selected on is empty.
 --  
 --  @param The direction in which you want to place a block.
 --
-function placeBlock(dir)
+function placeBlock(dir, force)
+  if (force ~= nil and force == true) then
+    breakBlock(dir);
+  end
+  
   while (turtle.getItemCount(turtle.getSelectedSlot()) == 0) do
     turtle.select((turtle.getSelectedSlot() % 16) + 1);
   end
@@ -106,6 +145,46 @@ function placeBlock(dir)
   elseif (dir == DOWN) then
     turtle.placeDown();
   else
+  end
+end
+
+--
+--  Used to destroy a block in a given direction/orientation. 
+--
+function breakBlock(dir)
+
+  if (dir == FORWARD then
+    turtle.dig();
+  elseif (dir == UP) then
+    turtle.digUp();
+  elseif (dir == DOWN) then
+    turtle.digDown();
+  else
+    dir = dir2Orient(dir);
+    turn(dir);
+    turtle.dig();
+  end
+  
+end
+
+--
+--  Converts a relative direction to an orientation value. If the value is not a direction then it
+--  just returns the direction value that was passed in. 
+--
+--  @param dir - The direction to convert into an orientation
+--  @return Returns an orientation value
+--
+function dir2Orient(dir)
+  if (dir == FORWARD) then
+    return orientation;
+  elseif (dir == BACK) then
+    return ((orientation + 2) % 4);
+  elseif (dir == LEFT) then
+    return ((orientation + 3) % 4);
+  elseif (dir == RIGHT) then
+    return ((orientation + 1) % 4);
+  else
+    return dir;
   end
 end
 
@@ -190,14 +269,14 @@ function buildFilledCube(x, y, z)
     for j=1,y do
     
       for i=1,x do
-        placeBlock(DOWN);
+        placeBlock(DOWN,true);
         if (i ~= x) then move(FORWARD); end
       end
       
       local nextOrientation = (orientation + 2) % 4; -- turn 180 degrees
       if (j ~= y) then
         turn(layerDirection);
-        move(FORWARD);
+        move(FORWARD,true);
       end
       turn(nextOrientation);
       
