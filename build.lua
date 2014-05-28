@@ -145,7 +145,7 @@ function readInArguments(args, opts)
     if (curr == nil) then -- we aren't currently reading in a flag's sub-items
     
       curr = args[i]; -- get the next item
-      if (string.sub(curr,1,1) == "-") then -- it's a new flag
+      if (tonumber(args[i])==nil and string.sub(curr,1,1) == "-") then -- it's a new flag
       
         curr = string.sub(curr,2); -- removes the starting '-' character
         
@@ -162,7 +162,7 @@ function readInArguments(args, opts)
       
     else -- the next item should be a sub-item under the current flag
       
-      if (string.sub(args[i],1,1) == "-" ) then -- make sure it's not another flag already
+      if (tonumber(args[i])==nil and string.sub(args[i],1,1) == "-" ) then -- make sure it's not another flag already
         return false, ("The " .. curr .. " flag requires " .. opts[curr] .. " additional arguments.");
       else
         rArgs[curr][#(rArgs[curr]) + 1] = args[i];
