@@ -346,7 +346,7 @@ function buildHollowCube(x, y, z, force)
   
   -- do the walls
   for k=1,(z-2) do
-    move(UP);
+    move(UP,force);
     
     -- each layer is two L shapes of the two side lengths
     local turnDirection = RIGHT;
@@ -354,15 +354,15 @@ function buildHollowCube(x, y, z, force)
     for h=1,2 do
       -- do a wall of the first length
       for i=1,(x-1) do
-        placeBlock(DOWN);
-        move(FORWARD);
+        placeBlock(DOWN,force);
+        move(FORWARD,force);
       end
       turn(turnDirection);
       
       -- do a wall of the second length
       for j=1,(y-1) do
-        placeBlock(DOWN);
-        move(FORWARD);
+        placeBlock(DOWN,force);
+        move(FORWARD,force);
       end
       turn(turnDirection);
     end
@@ -371,17 +371,17 @@ function buildHollowCube(x, y, z, force)
   
   
   -- do the upper layer
-  move(UP);
+  move(UP,force);
   for j=1,y do
     for i=1,x do
-      placeBlock(DOWN);
-      if (i ~= x) then move(FORWARD); end
+      placeBlock(DOWN,force);
+      if (i ~= x) then move(FORWARD,force); end
     end
     
     local nextOrientation = (orientation + 2) % 4; -- turn 180 degrees
     if (j ~= y) then
       turn(layerDirection);
-      move(FORWARD);
+      move(FORWARD,force);
     end
     turn(nextOrientation);
     
