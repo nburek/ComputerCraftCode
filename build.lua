@@ -313,9 +313,9 @@ function buildCube(args,force)
     print("Not enough blocks in the turtle inventory to build the desired structure.");
     print(blocksRequired .. " blocks required.");
     return;
-  elseif ( (blocksRequired + offset[1] + offset[2] + offset[3] + 1) > turtle.getFuelLevel()) then
+  elseif ( (blocksRequired + offsets[1] + offsets[2] + offsets[3] + 1) > turtle.getFuelLevel()) then
     print("Not enough fuel for the required operation.");
-    print((blocksRequired + offset[1] + offset[2] + offset[3] + 1) .. " fuel required.");
+    print((blocksRequired + offsets[1] + offsets[2] + offsets[3] + 1) .. " fuel required.");
     return;
   end
   
