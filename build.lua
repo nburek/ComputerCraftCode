@@ -456,7 +456,14 @@ if (not ok) then -- something went wrong when trying to parse the arguments
 end
 
 local forceFlag = false;
-if (arguments.force ~= nil) then forceFlag = true; end
+if (arguments.force ~= nil) then 
+  forceFlag = true; 
+  ok, message = turtle.digUp();
+  if (not ok and message=="No tool to dig with") then
+    print("Cannot use the -force flag because there is no tool equiped to dig with.");
+    return;
+  end
+end
 if (arguments.offset ~= nil) then
   for i=1,4 do
     offsets[i] = tonumber(arguments.offset[i]);
