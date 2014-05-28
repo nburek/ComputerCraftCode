@@ -20,7 +20,7 @@ local orientation = NORTH;
 
 
 -- Available Command Line Arguments
-local argOpts = { offset=3, force=0, cube=4};
+local argOpts = { offset=3, force=0, cube=4, help=0};
 
 
 
@@ -260,23 +260,23 @@ end
 --  @param y - The number of blocks East of the turtle to build
 --  @param z - The number of blocks Up from the turtle to build
 --
-function buildFilledCube(x, y, z)
+function buildFilledCube(x, y, z, force)
   local layerDirection = EAST;
 
   for k=1,z do
-    move(UP,true);
+    move(UP,force);
     
     for j=1,y do
     
       for i=1,x do
-        placeBlock(DOWN,true);
-        if (i ~= x) then move(FORWARD,true); end
+        placeBlock(DOWN,force);
+        if (i ~= x) then move(FORWARD,force); end
       end
       
       local nextOrientation = (orientation + 2) % 4; -- turn 180 degrees
       if (j ~= y) then
         turn(layerDirection);
-        move(FORWARD,true);
+        move(FORWARD,force);
       end
       turn(nextOrientation);
       
@@ -293,21 +293,21 @@ end
 --  @param y - The number of blocks East of the turtle to build
 --  @param z - The number of blocks Up from the turtle to build
 --
-function buildHollowCube(x, y, z)
+function buildHollowCube(x, y, z, force)
   local layerDirection = EAST;
 
   -- do the base layer
-  move(UP);
+  move(UP,force);
   for j=1,y do
     for i=1,x do
-      placeBlock(DOWN);
-      if (i ~= x) then move(FORWARD); end
+      placeBlock(DOWN,force);
+      if (i ~= x) then move(FORWARD,force); end
     end
     
     local nextOrientation = (orientation + 2) % 4; -- turn 180 degrees
     if (j ~= y) then
       turn(layerDirection);
-      move(FORWARD);
+      move(FORWARD,force);
     end
     turn(nextOrientation);
     
@@ -373,6 +373,10 @@ if #tArgs == 0 then
   print("Usage: build <structure> [options]");
   return;
 end
+
+arguments = readInArguments(tArgs,argOpts);
+
+print(textutils.serialize(arguments));
 
 if tArgs[1] == "help" then
   print("Available structures: cube");
