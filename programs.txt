@@ -3,3 +3,4 @@ build
 lavafarm
 installer
 light
+cccAPI
