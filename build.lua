@@ -78,7 +78,7 @@ end
 --  @param force - Boolean stating if blocks should be broken if they're in the way
 --
 function buildFilledCube(x, y, z, force)
-  local layerDirection = cccAPI.EAST;
+  local layerDirection = (cccAPI.getOrientation() + 1) % 4; -- start by heading right from current direction
 
   for k=1,z do
     cccAPI.move(cccAPI.UP,force);
@@ -112,7 +112,7 @@ end
 --  @param force - Boolean stating if blocks should be broken if they're in the way
 --
 function buildHollowCube(x, y, z, force)
-  local layerDirection = cccAPI.EAST;
+  local layerDirection = (cccAPI.getOrientation() + 1) % 4; -- start by heading right from current direction
 
   -- do the base layer
   cccAPI.move(cccAPI.UP,force);
