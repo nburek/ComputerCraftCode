@@ -311,14 +311,16 @@ end
 
 -- TODO: check to make sure we have enough fuel and lights
 
-x = arguments.others[1];
-y = arguments.others[2];
+local x = arguments.others[1];
+local y = arguments.others[2];
 
 move(UP,forceFlag);
 
 for i=1,y do
+  print("Y " .. y);
   for j=1,x do
-    place(DOWN,forceFlag);
+    print("X " .. x);
+    placeBlock(DOWN,forceFlag);
     if (j ~= x) then
       for k=1,5 do
         move(FORWARD,forceFlag);
@@ -327,7 +329,7 @@ for i=1,y do
   end
   
   local nextOrientation = (orientation + 2) % 4; -- turn 180 degrees
-  if (j ~= y) then
+  if (i ~= y) then
     turn(EAST);
     for k=1,5 do
       move(FORWARD,forceFlag);
