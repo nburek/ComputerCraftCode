@@ -311,15 +311,13 @@ end
 
 -- TODO: check to make sure we have enough fuel and lights
 
-local x = arguments.others[1];
-local y = arguments.others[2];
+local x = tonumber(arguments.others[1]);
+local y = tonumber(arguments.others[2]);
 
 move(UP,forceFlag);
 
 for i=1,y do
-  print("Y " .. y);
   for j=1,x do
-    print("X " .. x);
     placeBlock(DOWN,forceFlag);
     if (j ~= x) then
       for k=1,5 do
