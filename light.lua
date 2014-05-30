@@ -314,6 +314,9 @@ end
 local x = tonumber(arguments.others[1]);
 local y = tonumber(arguments.others[2]);
 
+
+moveToOffset(force);
+
 move(UP,forceFlag);
 
 for i=1,y do
