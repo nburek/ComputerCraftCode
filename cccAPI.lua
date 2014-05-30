@@ -16,6 +16,12 @@ LEFT = 9;
 -- The starting position and orientation
 orientation = NORTH;
 
+-- --------------------------------- --
+-- GETTER FUNCTIONS                  --
+-- --------------------------------- --
+function getOrientation()
+  return orientation;
+end
 
 -- --------------------------------- --
 -- MOVEMENT FUNCTIONS                --

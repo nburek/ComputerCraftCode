@@ -1,6 +1,6 @@
 local tArgs = { ... };
 
-os.loadAPI("cccAPI");
+os.loadAPI("/CCC/cccAPI");
 
 -- Available Command Line Arguments
 local argOpts = { offset=4, force=0, cube=4, help=0};
@@ -53,7 +53,7 @@ function buildCube(args,force)
   end
   
   -- make sure we have enough blocks and fuel
-  if (blocksRequired > countAllBlocks()) then
+  if (blocksRequired > cccAPI.countAllBlocks()) then
     print("Not enough blocks in the turtle inventory to build the desired structure.");
     print(blocksRequired .. " blocks required.");
     return;
@@ -90,7 +90,7 @@ function buildFilledCube(x, y, z, force)
         if (i ~= x) then cccAPI.move(cccAPI.FORWARD,force); end
       end
       
-      local nextOrientation = (cccAPI.orientation + 2) % 4; -- turn 180 degrees
+      local nextOrientation = (cccAPI.getOrientation() + 2) % 4; -- turn 180 degrees
       if (j ~= y) then
         cccAPI.turn(layerDirection);
         cccAPI.move(cccAPI.FORWARD,force);
@@ -122,7 +122,7 @@ function buildHollowCube(x, y, z, force)
       if (i ~= x) then cccAPI.move(cccAPI.FORWARD,force); end
     end
     
-    local nextOrientation = (cccAPI.orientation + 2) % 4; -- turn 180 degrees
+    local nextOrientation = (cccAPI.getOrientation() + 2) % 4; -- turn 180 degrees
     if (j ~= y) then
       cccAPI.turn(layerDirection);
       cccAPI.move(cccAPI.FORWARD,force);
@@ -168,7 +168,7 @@ function buildHollowCube(x, y, z, force)
       if (i ~= x) then cccAPI.move(cccAPI.FORWARD,force); end
     end
     
-    local nextOrientation = (cccAPI.orientation + 2) % 4; -- turn 180 degrees
+    local nextOrientation = (cccAPI.getOrientation() + 2) % 4; -- turn 180 degrees
     if (j ~= y) then
       cccAPI.turn(layerDirection);
       cccAPI.move(cccAPI.FORWARD,force);
